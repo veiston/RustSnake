@@ -1,12 +1,12 @@
 use bevy::app::AppExit;
 use bevy::prelude::*;
 
-const MULTIPLIER: f32 = 2.0; /* Multiplier for all object sizes and game speed */
-const PLAYER_SPEED: f32 = 500.0 * MULTIPLIER;
-const FOOD_COLLISION_DISTANCE: f32 = 18.0 * MULTIPLIER;
-const SNAKE_COLLISION_DISTANCE: f32 = 12.0 * MULTIPLIER;
-const HEAD_FONT_SIZE: f32 = 18.0 * MULTIPLIER;
-const BODY_FONT_SIZE: f32 = 16.0 * MULTIPLIER;
+const SIZE_MULTIPLIER: f32 = 2.0; /* Multiplier for all object sizes and game speed */
+const PLAYER_SPEED: f32 = 800.0;
+const FOOD_COLLISION_DISTANCE: f32 = 14.0 * SIZE_MULTIPLIER;
+const SNAKE_COLLISION_DISTANCE: f32 = 12.0 * SIZE_MULTIPLIER;
+const HEAD_FONT_SIZE: f32 = 18.0 * SIZE_MULTIPLIER;
+const BODY_FONT_SIZE: f32 = 16.0 * SIZE_MULTIPLIER;
 /* let mut moi = "moi"; */
 
 #[derive(Component)]
@@ -83,15 +83,18 @@ fn move_player(
 }
 
 /* Close the application */
-fn exit_app(mut writer: AppExit) {
-    AppExit::Success;
+fn exit_app(mut exit: MessageWriter<AppExit>) {
+    exit.write(AppExit::Success);
 }
 
 /* Check if death is inevitable */
+/* Currently broken */
+/* TODO: fix dying at random moments when growing*/
 fn check_snake_colission(
     snake_body: Res<SnakeBody>,
     head_query: Query<&Transform, With<Player>>,
     body_transforms: Query<&Transform, With<Body>>,
+    exit: MessageWriter<AppExit>,
 ) {
     let head = match head_query.single() {
         Ok(h) => h,
@@ -104,8 +107,7 @@ fn check_snake_colission(
         if let Ok(seg_t) = body_transforms.get(segment) {
             let seg_pos = seg_t.translation.truncate();
             if head_pos.distance(seg_pos) < SNAKE_COLLISION_DISTANCE {
-                exit_app(AppExit::Success);
-                AppExit::Success;
+                exit_app(exit);
                 return;
             }
         }
